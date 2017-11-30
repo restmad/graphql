@@ -1152,10 +1152,49 @@ TypeDefinition :
 
 A GraphQL Type System is defined by many different kinds of types.
 
+#### Descriptions
+
+Description : String
+
+All GraphQL types, fields, and arguments should provide a {Description} to allow
+type designers to publish documentation alongside capabilities of a GraphQL
+service. GraphQL descriptions are defined using Markdown syntax (as specified by
+[CommonMark](http://commonmark.org/)). These description strings (often
+{BlockString}) occur immediately before the definition they describe.
+
+As an example, this simple schema is well described:
+
+```graphql example
+"""
+A simple GraphQL schema which is well described.
+"""
+type Query {
+  """
+  Translates a string from a given language into a different language.
+  """
+  translate(
+    """
+    The original language that `text` is provided in.
+    """
+    fromLanguage: String
+
+    """
+    The translated language to be returned.
+    """
+    toLanguage: String
+
+    """
+    The text to be translated from an original language into a
+    translated language.
+    """
+    text: String
+  ): String
+}
+```
 
 #### Scalar
 
-ScalarTypeDefinition : scalar Name Directives[Const]?
+ScalarTypeDefinition : Description? scalar Name Directives[Const]?
 
 Scalar types represent leaf values in a GraphQL type system. While this GraphQL
 specification describes a set of Scalar types which all GraphQL services must
@@ -1172,17 +1211,17 @@ scalar DateTime
 
 #### Object
 
-ObjectTypeDefinition : type Name ImplementsInterfaces? Directives[Const]? FieldDefinitions
+ObjectTypeDefinition : Description? type Name ImplementsInterfaces? Directives[Const]? FieldDefinitions
 
-ImplementsInterfaces : implements NamedType+
+ImplementsInterfaces : Description? implements NamedType+
 
 FieldDefinitions : { FieldDefinition+ }
 
-FieldDefinition : Name ArgumentsDefinition? : Type Directives[Const]?
+FieldDefinition : Description? Name ArgumentsDefinition? : Type Directives[Const]?
 
 ArgumentsDefinition : ( InputValueDefinition+ )
 
-InputValueDefinition : Name : Type DefaultValue? Directives[Const]?
+InputValueDefinition : Description? Name : Type DefaultValue? Directives[Const]?
 
 Object types represent a list of named fields, each of which yield a value of a
 specific type. Each field itself may accept a list of named arguments.
@@ -1202,7 +1241,7 @@ type TodoItem implements Node {
 
 #### Interface
 
-InterfaceTypeDefinition : interface Name Directives[Const]? FieldDefinitions
+InterfaceTypeDefinition : Description? interface Name Directives[Const]? FieldDefinitions
 
 Interface types, similarly to Object types represent a list of named fields.
 Interface types are used as the type of a field when one of many possible Object
@@ -1220,7 +1259,7 @@ interface Node {
 
 #### Union
 
-UnionTypeDefinition : union Name Directives[Const]? = UnionMembers
+UnionTypeDefinition : Description? union Name Directives[Const]? = UnionMembers
 
 UnionMembers :
   - NamedType
@@ -1240,9 +1279,9 @@ union Actor = User | Business
 
 #### Enum
 
-EnumTypeDefinition : enum Name Directives[Const]? { EnumValueDefinition+ }
+EnumTypeDefinition : Description? enum Name Directives[Const]? { EnumValueDefinition+ }
 
-EnumValueDefinition : EnumValue Directives[Const]?
+EnumValueDefinition : Description? EnumValue Directives[Const]?
 
 Enum types, like Scalar types, also represent leaf values in a GraphQL type
 system. However Enum types describe the set of legal values.
@@ -1260,7 +1299,7 @@ enum Direction {
 
 #### Input Object
 
-InputObjectTypeDefinition : input Name Directives[Const]? { InputValueDefinition+ }
+InputObjectTypeDefinition : Description? input Name Directives[Const]? { InputValueDefinition+ }
 
 Input Object types represent complex input values which may be provided as an
 field argument. Input Object types cannot be the return type of an Object or
@@ -1277,7 +1316,7 @@ input Point2D {
 
 ### Directive Definition
 
-DirectiveDefinition : directive @ Name ArgumentsDefinition? on DirectiveLocations
+DirectiveDefinition : Description? directive @ Name ArgumentsDefinition? on DirectiveLocations
 
 DirectiveLocations :
   - Name
