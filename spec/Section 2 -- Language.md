@@ -1073,8 +1073,8 @@ they may be exposed via directives.
 TypeSystemDefinition :
   - SchemaDefinition
   - TypeDefinition
-  - TypeExtensionDefinition
   - DirectiveDefinition
+  - TypeExtension
 
 The GraphQL language also includes an
 [IDL](https://en.wikipedia.org/wiki/Interface_description_language) used to
@@ -1105,7 +1105,7 @@ the *root types* to be used for each operation.
 In this example, a GraphQL schema is defined with both query and mutation
 root types:
 
-```graphql
+```graphql example
 schema {
   query: MyQueryRootType
   mutation: MyMutationRootType
@@ -1133,7 +1133,7 @@ This example describes a valid complete GraphQL schema, despite not explicitly
 including a schema definition. The `Query` type is presumed to be the query
 root type of the schema.
 
-```graphql
+```graphql example
 type Query {
   someField: String
 }
@@ -1165,16 +1165,18 @@ which describe a schema for brevity.
 
 In this example, a Scalar type called `DateTime` is defined:
 
-```graphql
+```graphql example
 scalar DateTime
 ```
 
 
 #### Object
 
-ObjectTypeDefinition : type Name ImplementsInterfaces? Directives? { FieldDefinition+ }
+ObjectTypeDefinition : type Name ImplementsInterfaces? Directives? FieldDefinitions
 
 ImplementsInterfaces : implements NamedType+
+
+FieldDefinitions : { FieldDefinition+ }
 
 FieldDefinition : Name ArgumentsDefinition? : Type Directives?
 
@@ -1190,7 +1192,7 @@ Object type must supply all fields defined by the Interface.
 
 In this example, a Object type called `TodoItem` is defined:
 
-```graphql
+```graphql example
 type TodoItem implements Node {
   id: ID
   title: String
@@ -1200,7 +1202,7 @@ type TodoItem implements Node {
 
 #### Interface
 
-InterfaceTypeDefinition : interface Name Directives? { FieldDefinition+ }
+InterfaceTypeDefinition : interface Name Directives? FieldDefinitions
 
 Interface types, similarly to Object types represent a list of named fields.
 Interface types are used as the type of a field when one of many possible Object
@@ -1210,7 +1212,7 @@ that Interface as well as includes all defined fields.
 
 In this example, an Interface type called `Node` is defined:
 
-```graphql
+```graphql example
 interface Node {
   id: ID
 }
@@ -1231,7 +1233,7 @@ Union when it is declared by the Union.
 
 In this example, a Union type called `Actor` is defined:
 
-```graphql
+```graphql example
 union Actor = User | Business
 ```
 
@@ -1249,7 +1251,7 @@ system. However Enum types describe the set of legal values.
 
 In this example, an Enum type called `Direction` is defined:
 
-```graphql
+```graphql example
 enum Direction {
   NORTH
   EAST
@@ -1268,30 +1270,10 @@ Interface field.
 
 In this example, an Input Object called `Point2D` is defined:
 
-```graphql
+```graphql example
 input Point2D {
   x: Float
   y: Float
-}
-```
-
-### Type Extension
-
-TypeExtensionDefinition : extend ObjectTypeDefinition
-
-Type extensions may be used by client-side tools in order to represent a
-GraphQL type system which has been extended from the type system exposed via
-introspection by a GraphQL service, for example to represent fields which a
-client of GraphQL uses locally, but is not provided by a GraphQL service.
-
-Any fields or interfaces provided by the extension must not already exist on the
-Object type.
-
-In this example, a client only field is added to a `Story` type:
-
-```graphql
-extend type Story {
-  isHiddenLocally: Boolean
 }
 ```
 
@@ -1317,6 +1299,7 @@ that are explicitly declared. Directive locations must be one of:
 
  * `QUERY`
  * `MUTATION`
+ * `SUBSCRIPTION`
  * `FIELD`
  * `FRAGMENT_DEFINITION`
  * `FRAGMENT_SPREAD`
@@ -1336,7 +1319,7 @@ that are explicitly declared. Directive locations must be one of:
 In this example, a directive is defined which can be used to annotate a
 fragment definition:
 
-```
+```graphql example
 directive @someAnnotation(arg: String) on FRAGMENT_DEFINITION
 
 fragment SomeFragment on SomeType @someAnnotation(arg: "abc") {
@@ -1346,7 +1329,7 @@ fragment SomeFragment on SomeType @someAnnotation(arg: "abc") {
 
 Directives can also be used to annotate the schema language itself:
 
-```
+```graphql example
 directive @some(thing: Int) on FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 type SomeType {
@@ -1354,4 +1337,39 @@ type SomeType {
     arg: Int @some(thing: 1)
   ): String @some(thing: 2)
 }
+```
+
+### Type Extension
+
+TypeExtension : extend ObjectTypeExtension
+
+Type extensions are used to represent a GraphQL type system which has been
+extended from some original type system. For example, this might be used by a
+client-side service to represent fields a GraphQL client only accesses locally,
+or by a GraphQL service which is itself an extension of another GraphQL service.
+
+
+#### Object Type Extension
+
+ObjectTypeExtension : type Name ImplementsInterfaces? Directives? FieldDefinitions?
+
+The named Object type must already exist and be an Object type. Any fields,
+interfaces, or directives provided by the extension must not already exist on
+the original Object type.
+
+In this example, a client only field is added to a `Story` type:
+
+```graphql example
+extend type Story {
+  isHiddenLocally: Boolean
+}
+```
+
+Object type extensions may not add additional fields, instead only adding
+interfaces or directives.
+
+In this example, a directive is added to a `User` type without adding fields:
+
+```graphql example
+extend type User @addedDirective
 ```
